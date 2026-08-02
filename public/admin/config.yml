@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+local_backend: true
+backend:
+  name: github
+  repo: heresmohit/personalwebsite
+  branch: main
+
+media_folder: public/media
+public_folder: /media
+
+collections:
+  - name: blog
+    label: Blog
+    folder: posts/blog
+    create: true
+    slug: "{{slug}}"
+    view_filters:
+      - label: Drafts
+        field: draft
+        pattern: true
+    sortable_fields:
+      fields: [title, publishedOn]
+      default:
+        field: publishedOn
+        direction: descending
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Publish Date, name: publishedOn, widget: datetime, date_format: YYYY-MM-DD, time_format: false, format: YYYY-MM-DD }
+      - { label: Draft, name: draft, widget: boolean, default: true, required: false }
+      - label: Audio
+        name: audio
+        widget: file
+        required: false
+        media_folder: /public/media/audio
+        public_folder: /media/audio
+      - { label: Audio Title, name: audioTitle, widget: string, required: false }
+      # Single definition of the tags field, aliased into every other
+      # collection below. A plain list: type a new kebab-case tag on any post
+      # and it joins the site-wide tag list (derived from posts at build time).
+      # The content schema rejects non-kebab-case tags at build.
+      - &tagsField
+        label: Tags
+        name: tags
+        widget: list
+        required: false
+      - { label: Body, name: body, widget: markdown }
+
+ 
+  - name: weeknotes
+    label: Weeknotes
+    folder: posts/weeknotes
+    create: true
+    slug: "{{slug}}"
+    view_filters:
+      - label: Drafts
+        field: draft
+        pattern: true
+    sortable_fields:
+      fields: [title, publishedOn]
+      default:
+        field: publishedOn
+        direction: descending
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Publish Date, name: publishedOn, widget: datetime, date_format: YYYY-MM-DD, time_format: false, format: YYYY-MM-DD }
+      - { label: Draft, name: draft, widget: boolean, default: true, required: false }
+      - *tagsField
+      - label: Body
+        name: body
+        widget: markdown
+        default: "## Work\n\n## Life\n\n## Health\n\n## Learning\n\n## Media Diet\n\n### Reading\n\n### Watching\n\n### Listening\n\n### Around the web\n"
+
+  - name: notes
+    label: Notes
+    folder: posts/notes
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}"
+    summary: "{{body}}"
+    sortable_fields:
+      fields: [publishedOn]
+      default:
+        field: publishedOn
+        direction: descending
+    fields:
+      - { label: Published, name: publishedOn, widget: datetime, format: "YYYY-MM-DDTHH:mm:ss", default: "{{now}}" }
+      - *tagsField
+      - { label: Body, name: body, widget: markdown }
+
+  - name: pages
+    label: Pages
+    folder: posts/pages
+    create: true
+    slug: "{{slug}}"
+    view_filters:
+      - label: Drafts
+        field: draft
+        pattern: true
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Draft, name: draft, widget: boolean, default: true, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+media_libraries:
+  default:
+    config:
+      slugify_filename: true
+      transformations:
+        raster_image:
+          format: webp
+          quality: 85
+        svg:
+          optimize: true

@@ -1,0 +1,46 @@
+---
+import { NAV_ITEMS, getCurrentSection, type Section } from "../utils/sections";
+
+// Draft previews live at /drafts/<published-path> with no /drafts index;
+// resolve the underlying section so the nav matches the published version.
+// Skip the synthesized fallback for drafts — it would link to pages that
+// don't exist while the entry is unpublished.
+const strippedPath = Astro.url.pathname.replace(/^\/drafts(?=\/|$)/, "");
+const isDraftPreview = strippedPath !== Astro.url.pathname;
+const current = getCurrentSection(strippedPath, !isDraftPreview);
+const inMainNav =
+  current && NAV_ITEMS.some((item) => item.href === current.href);
+const items: Section[] =
+  !current || inMainNav ? [...NAV_ITEMS] : [current, ...NAV_ITEMS];
+---
+
+<header
+  class="not-prose w-full max-w-5xl mx-auto px-6 md:px-10 my-6 flex items-center justify-between gap-6"
+>
+  <a href="/" class="text-neutral-800! font-literata text-2xl sm:text-3xl">
+    Mohit Gumber
+  </a>
+
+  <nav aria-label="Primary">
+    <ul
+      class="flex flex-wrap items-center justify-end list-none p-0 m-0 gap-4 sm:gap-6 sm:text-lg"
+    >
+      {
+        items.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              aria-current={current?.href === item.href ? "page" : undefined}
+              class:list={[
+                current?.href === item.href &&
+                  "underline underline-offset-2 decoration-2",
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>

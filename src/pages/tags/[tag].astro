@@ -1,0 +1,76 @@
+---
+import { getAllTaggedPosts, getAllTags } from "../../utils/collections";
+import { TAGGED_COLLECTIONS } from "../../utils/tagged-collections";
+import { SECTIONS } from "../../content.config";
+import ProseLayout from "../../layouts/ProseLayout.astro";
+import { formatLongDate, formatNoteTimestamp } from "../../utils/date-helpers";
+
+export async function getStaticPaths() {
+  return (await getAllTags()).map((tag) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params as { tag: string };
+
+const allPosts = await getAllTaggedPosts();
+const newestFirst = (
+  a: (typeof allPosts)[number],
+  b: (typeof allPosts)[number],
+) => b.data.publishedOn.getTime() - a.data.publishedOn.getTime();
+
+const sections = TAGGED_COLLECTIONS.map((name) => ({
+  label: SECTIONS[name].title,
+  posts: allPosts
+    .filter((p) => p.collection === name && p.data.tags?.includes(tag))
+    .sort(newestFirst),
+})).filter((s) => s.posts.length > 0);
+
+const frontmatter = { title: tag };
+---
+
+<ProseLayout frontmatter={frontmatter}>
+  <p><a href="/tags">← all tags</a></p>
+  {
+    sections.map(({ label, posts }) => (
+      <section>
+        <h2>{label}</h2>
+        <ul>
+          <p>
+            {posts.map((post) => {
+              const title = (post.data as { title?: string }).title;
+              // Titled posts link by title; title-less notes have no title
+              // to fake, so they link by their timestamp (a semantic <time>).
+              return title ? (
+                <li>
+                  <a href={post.href}>{title}</a>
+                  <span class="date">{formatLongDate(post.data.publishedOn)}</span>
+                </li>
+              ) : (
+                <li>
+                  <time datetime={post.data.publishedOn.toISOString()}>
+                    {formatNoteTimestamp(post.data.publishedOn)}
+                  </time>
+                  <a href={post.href} class="date">
+                    permalink
+                  </a>
+                </li>
+              );
+            })}
+          </p>
+        </ul>
+      </section>
+    ))
+  }
+</ProseLayout>
+
+<style>
+  ul {
+    list-style: none;
+  }
+
+  .date {
+    font-size: 0.9rem;
+    font-variant: small-caps;
+    margin-left: 0.5rem;
+    opacity: 0.6;
+  }
+</style>

@@ -1,0 +1,182 @@
+---
+import { Icon } from "astro-icon/components";
+import FeedbackMessage from "../components/FeedbackMessage.astro";
+import ProseLayout from "../layouts/ProseLayout.astro";
+import { STANDALONE_PAGES } from "../content.config";
+
+const feeds = [
+  { name: "All posts", url: "https://MohitGumber.com/feed.xml" },
+  { name: "Blog", url: "https://MohitGumber.com/blog/feed.xml" },
+  { name: "Notes", url: "https://MohitGumber.com/notes/feed.xml" },
+  { name: "Weeknotes", url: "https://MohitGumber.com/weeknotes/feed.xml" },
+];
+
+const lists = [
+  {
+    id: "6dce4",
+    value: "6dce4528-b942-4509-9442-6ca3eaa7bba3",
+    label: "All posts",
+  },
+  { id: "acb8d", value: "acb8d095-57c2-450c-8cab-a68af5c30054", label: "Blog" },
+  {
+    id: "d21fe",
+    value: "d21fe761-f360-4da2-a22b-4a73ca094849",
+    label: "Quarterly digest",
+  },
+  {
+    id: "60287",
+    value: "602876b6-cfc8-4b52-a61b-5506c146edd4",
+    label: "Weeknotes",
+  },
+];
+---
+
+<ProseLayout frontmatter={STANDALONE_PAGES.subscribe}>
+  <h2>RSS</h2>
+  <p>
+    RSS lets you keep up with the updates on this blog without giving out your
+    email. If you're unfamiliar with using them, <a
+      href="https://aboutfeeds.com">here's how to get started.</a
+    >
+  </p>
+
+  <ul class="list-none pl-0">
+    {
+      feeds.map((feed) => (
+        <li class="flex items-center gap-2 flex-wrap">
+          <span class="min-w-40">{feed.name}</span>
+          <a href={feed.url} class="text-sm break-all">
+            {feed.url}
+          </a>
+          <button
+            class="copy-btn cursor-pointer border-none bg-transparent p-1 text-stone-500 hover:text-stone-800 transition-colors"
+            data-url={feed.url}
+            aria-label={`Copy ${feed.name} feed URL`}
+          >
+            <Icon name="lucide:copy" size={16} />
+          </button>
+          <FeedbackMessage>Copied!</FeedbackMessage>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2>Email</h2>
+  <p>You can also route my new posts to your email inbox.</p>
+
+  <form
+    id="subscribe-form"
+    method="post"
+    action="https://epi.stic.earth/subscription/form"
+    class="listmonk-form"
+  >
+    <input type="hidden" name="nonce" />
+
+    <p class="mb-3">
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="E-mail"
+        class="w-full rounded border-stone-300 focus:border-stone-500 focus:ring-stone-500"
+      />
+    </p>
+    <p class="mb-3">
+      <input
+        type="text"
+        name="name"
+        placeholder="Name (optional)"
+        class="w-full rounded border-stone-300 focus:border-stone-500 focus:ring-stone-500"
+      />
+    </p>
+
+    {
+      lists.map((list, i) => (
+        <p class={i === lists.length - 1 ? "mb-4" : "mb-2"}>
+          <input
+            id={list.id}
+            type="checkbox"
+            name="l"
+            class="rounded border-stone-300 text-stone-800 focus:ring-stone-500"
+            value={list.value}
+          />
+          <label for={list.id}>{list.label}</label>
+        </p>
+      ))
+    }
+
+    <input
+      type="submit"
+      value="Subscribe"
+      class="bg-stone-800 text-stone-100 px-4 py-2 rounded cursor-pointer hover:bg-stone-700 transition-colors"
+    />
+    <FeedbackMessage id="subscribe-status" />
+  </form>
+
+  <p>
+    As usual, you can email me at <a href="mailto:mohitgumber236@gmail.com"
+      >mohitgumber236@gmail.com</a
+    > to talk about anything.
+  </p>
+</ProseLayout>
+
+<script>
+  function showFeedback(el: Element, message?: string, duration = 2000) {
+    if (message) el.textContent = message;
+    el.classList.remove("hidden");
+    setTimeout(() => el.classList.add("hidden"), duration);
+  }
+
+  // Copy buttons
+  document.querySelectorAll(".copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const url = btn.getAttribute("data-url");
+      if (!url) return;
+
+      await navigator.clipboard.writeText(url);
+      const msg = btn.nextElementSibling;
+      if (msg) showFeedback(msg);
+    });
+  });
+
+  // Subscribe form
+  const form = document.getElementById("subscribe-form") as HTMLFormElement;
+  const status = document.getElementById("subscribe-status")!;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = (form.querySelector('[name="email"]') as HTMLInputElement)
+      .value;
+    const name = (form.querySelector('[name="name"]') as HTMLInputElement)
+      .value;
+    const listUuids = Array.from(
+      form.querySelectorAll<HTMLInputElement>('[name="l"]:checked'),
+    ).map((cb) => cb.value);
+
+    if (listUuids.length === 0) {
+      showFeedback(status, "Please select at least one list.", 4000);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name, list_uuids: listUuids }),
+      });
+
+      if (res.ok) {
+        showFeedback(status, "You're subscribed!");
+      } else {
+        showFeedback(status, "Something went wrong. Please try again.", 4000);
+      }
+    } catch {
+      showFeedback(
+        status,
+        "Could not reach the server. Please try again.",
+        4000,
+      );
+    }
+  });
+</script>

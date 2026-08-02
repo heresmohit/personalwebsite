@@ -1,0 +1,46 @@
+---
+import { getPublishedEntries } from "../../utils/collections";
+import ProseLayout from "../../layouts/ProseLayout.astro";
+import { SECTIONS } from "../../content.config";
+
+const sortedBlogPosts = (await getPublishedEntries("blog")).sort(
+  (a, b) => b.data.publishedOn.getTime() - a.data.publishedOn.getTime(),
+);
+
+const frontmatter = SECTIONS.blog;
+---
+
+<ProseLayout frontmatter={frontmatter}>
+  <ul>
+    <p>
+      {
+        sortedBlogPosts.map((blogPost) => {
+          return (
+            <li>
+              <a href={`/blog/${blogPost.id}`}>{blogPost.data.title}</a>
+              <span class="date">
+                {blogPost.data.publishedOn.toLocaleDateString("en-US", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            </li>
+          );
+        })
+      }
+    </p>
+  </ul>
+</ProseLayout>
+
+<style>
+  ul {
+    list-style: none;
+  }
+
+  .date {
+    font-size: 0.9rem;
+    font-variant: small-caps;
+    margin-left: 0.5rem;
+  }
+</style>

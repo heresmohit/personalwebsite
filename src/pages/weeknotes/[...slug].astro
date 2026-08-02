@@ -1,0 +1,16 @@
+---
+import EntryPage from "../../components/EntryPage.astro";
+import { getPublishedEntries } from "../../utils/collections";
+
+export async function getStaticPaths() {
+  const weeknotes = await getPublishedEntries("weeknotes");
+  return weeknotes.map((weeknote) => ({
+    params: { title: weeknote.data.title, slug: weeknote.id },
+    props: { weeknote },
+  }));
+}
+
+const { weeknote } = Astro.props;
+---
+
+<EntryPage entry={weeknote} collection="weeknotes" />

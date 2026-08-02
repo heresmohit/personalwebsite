@@ -1,0 +1,53 @@
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800");
+@import url("https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&display=swap");
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+
+html {
+  font-family: "Open Sans", ui-sans-serif, system-ui;
+}
+
+::selection {
+  color: oklch(98.5% 0 0); /*neutral-50*/
+  background: oklch(70.4% 0.191 22.216); /*red-400*/
+}
+
+@custom-variant mobile-landscape {
+  @media only screen and (( 
+ ((max-height: 990px) and (max-width: 560px)) or 
+  ((max-height: 560px) and (max-width: 990px)) ) 
+  and (orientation: landscape)) {
+    @slot;
+  }
+}
+
+a {
+  color: oklch(50.5% 0.213 27.518); /*red-800*/
+}
+
+a:hover {
+  filter: brightness(0.8);
+  transition: filter 0.12s ease-in-out;
+}
+
+a:visited {
+  filter: brightness(0.9);
+}
+
+@theme {
+  --font-literata: "Literata", serif;
+}
+
+.anchor-link {
+  opacity: 0;
+  color: oklch(50.5% 0.213 27.518); /*red-800*/
+  text-decoration: none;
+  transition: opacity 0.15s ease-in-out;
+}
+
+:is(p, li, h2, h3, h4, h5, h6):hover > .anchor-link,
+.anchor-link:hover {
+  opacity: 1;
+  filter: none;
+}

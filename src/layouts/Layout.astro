@@ -1,0 +1,97 @@
+---
+import "/src/styles/global.css";
+import { SITE_TAB_TITLE, SITE_DESCRIPTION } from "../utils/site";
+import { getPageName } from "../utils/sections";
+const {
+  class: className,
+  title,
+  description = SITE_DESCRIPTION,
+  type = "website",
+  noindex,
+} = Astro.props;
+
+// An explicit title (e.g. "Post · Blog" from ProseLayout) wins; otherwise
+// derive the page name from the route. Homepage gets just the site name.
+const pageName = title || getPageName(Astro.url.pathname);
+const fullTitle = pageName ? `${pageName} | ${SITE_TAB_TITLE}` : SITE_TAB_TITLE;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" type="text/css" href="/src/styles/global.css" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="author" content="Mohit Gumber" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta name="description" content={description} />
+
+    <!-- Open Graph / share cards -->
+    <meta property="og:title" content={pageName || SITE_TAB_TITLE} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={Astro.url.href} />
+
+    <!-- For IndieAuth https://indieweb.org/IndieAuth maybe something to look into later
+    <link href="https://github.com/ rel="me" />
+    <link rel="authorization_endpoint" href="https://indieauth.com/auth" /> -->
+
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Mohit Gumber"
+      href="/feed.xml"
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Mohit Gumber - Blog"
+      href="/blog/feed.xml"
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Mohit Gumber - Weeknotes"
+      href="/weeknotes/feed.xml"
+    />
+   
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Mohit Gumber - Notes"
+      href="/notes/feed.xml"
+    />
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22256%22 height=%22256%22 viewBox=%220 0 100 100%22><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%22110%22>🪭</text></svg>"
+    />
+    <title>{fullTitle}</title>
+    <script
+      defer
+      data-domain="mohitgumber.com"
+      src="https://stati.stic.earth/js/script.file-downloads.hash.outbound-links.tagged-events.js"
+    ></script>
+    <script>
+      window.plausible =
+        window.plausible ||
+        function () {
+          (window.plausible.q = window.plausible.q || []).push(arguments);
+        };
+    </script>
+  </head>
+  <body class=`${className || "text-stone-800 bg-stone-100"}`>
+    <slot />
+  </body>
+</html>
+
+<style>
+  html {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>

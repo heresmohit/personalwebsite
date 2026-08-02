@@ -1,0 +1,113 @@
+---
+import Layout from "./Layout.astro";
+import Nav from "../components/Nav.astro";
+import { shortenWeeknoteTitles, formatLongDate } from "../utils/date-helpers";
+
+const { frontmatter, category, readingTimeMinutes, hidePublishedOn, noindex } =
+  Astro.props;
+
+const publishedOn: Date | undefined = frontmatter?.publishedOn;
+const showPublishedOn = !hidePublishedOn && publishedOn instanceof Date;
+const publishedOnFormatted = showPublishedOn
+  ? formatLongDate(publishedOn)
+  : null;
+const publishedOnIso = showPublishedOn ? publishedOn.toISOString() : undefined;
+
+let pageTitle = "";
+if (frontmatter?.title) {
+  if (category === "weeknotes") {
+    pageTitle = `${shortenWeeknoteTitles(frontmatter.title)} | Weeknote`;
+  } else if (category === "blog") {
+    pageTitle = `${frontmatter.title} | Blog`;
+  } else {
+    pageTitle = frontmatter.title;
+  }
+}
+/** TODO: different formats for different kinds of pages
+- one-off pages should have: flex flex-col items-center justify-center
+- long form pages (like my current work page, random notes dumps, etc, should have less margins and left justification
+-  blog posts also should be treated differently.
+  */
+---
+
+<Layout
+  title={pageTitle}
+  noindex={noindex}
+  description={frontmatter?.description}
+  type={frontmatter?.publishedOn ? "article" : "website"}
+  class="min-w-screen min-h-screen flex flex-col items-center text-stone-800 bg-stone-100"
+>
+  <Nav />
+  <article
+    class="mx-8 md:w-1/2 leading-6 pb-8 mt-6 md:mt-8 prose md:prose-lg ld:prose-xl prose-stone prose-headings:font-literata prose-headings:font-bold"
+  >
+    {
+      frontmatter?.title && (
+        <header class="title-block">
+          <h1>{frontmatter.title}</h1>
+          {(publishedOnFormatted || readingTimeMinutes) && (
+            <p class="post-meta">
+              {publishedOnFormatted && (
+                <time datetime={publishedOnIso}>{publishedOnFormatted}</time>
+              )}
+              {publishedOnFormatted && readingTimeMinutes && (
+                <span aria-hidden="true"> · </span>
+              )}
+              {readingTimeMinutes && <span>{readingTimeMinutes} min read</span>}
+            </p>
+          )}
+        </header>
+      )
+    }
+    <slot />
+    {
+      frontmatter?.tags && frontmatter.tags.length > 0 && (
+        <div class="tags">
+          {frontmatter.tags.map((tag: string) => (
+            <a href={`/tags/${tag}`} class="tag">
+              {tag}
+            </a>
+          ))}
+        </div>
+      )
+    }
+  </article>
+</Layout>
+
+<style>
+  .title-block {
+    margin-bottom: 1rem;
+  }
+
+  .title-block :global(h1) {
+    margin-bottom: 0.25rem;
+  }
+
+  .post-meta {
+    font-size: 0.85rem;
+    font-variant: small-caps;
+    letter-spacing: 0.03em;
+    color: var(--tw-prose-body, rgba(0, 0, 0, 0.75));
+    margin: 0;
+  }
+
+  .tags {
+    margin-top: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.8rem;
+    font-variant: small-caps;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.6;
+  }
+
+  .tag:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+</style>
